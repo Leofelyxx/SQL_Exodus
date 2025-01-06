@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "SQL_Exodus": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
