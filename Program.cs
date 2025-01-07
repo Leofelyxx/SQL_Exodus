@@ -1,56 +1,63 @@
-﻿using SQL_Exodus.Models;
+﻿using SQL_Exodus;
+using SQL_Exodus.Services;
+using static SQL_Exodus.Models.DatabasesEnum;
 
 Console.WriteLine($"Selecione o tipo do banco de dados");
 
-foreach (DatabasesEnum.Databases database in Enum.GetValues(typeof(DatabasesEnum.Databases)))
+foreach (Databases database in Enum.GetValues(typeof(Databases)))
 {
     Console.WriteLine($"{(int)database + 1}. {database}");
 }
 
-string opcaoEscolhida = Console.ReadLine();
+Console.Write("Digite: ");
+string opcaoEscolhida = Console.ReadLine()?.Trim().ToLower(); ;
 
-//TODO: verificar a opção se é SQL Server
-
-Console.WriteLine("Digite o nome do servidor:");
-string serverName = Console.ReadLine();
-
-Console.WriteLine("É Windows Authentication?. 1 = Sim; 0 = Não(Default)");
-string IsWindowsAuthentication = Console.ReadLine();
-
-if (IsWindowsAuthentication != "1")
+if (!int.TryParse(opcaoEscolhida, out int numeroEscolhido))
 {
-    Console.WriteLine("Digite o nome do usuário: ");
-    string userName = Console.ReadLine();
-
-    Console.WriteLine("Digite a senha: ");
-    string password = ReadPassword();
+    Console.WriteLine("Opção Inválida!. Digite um número.");
+    return;
 }
 
+numeroEscolhido--;
+  
+string userName = "";
+string passWord = "";
 
-// Método para ler a senha sem exibir os caracteres
-static string ReadPassword()
+switch ((Databases)numeroEscolhido)
 {
-    string password = "";
-    while (true)
-    {
-        var key = Console.ReadKey(intercept: true); // Não exibe a tecla pressionada no console
-        if (key.Key == ConsoleKey.Enter) // Quando pressionar Enter, finaliza
+    case Databases.SQL_Server_Local:
+    case Databases.SQL_Server_Remote:
+        Console.Write("Nome do servidor: ");
+        string serverName = Console.ReadLine();
+
+        Console.Write("Windows Authentication? 1 = Sim; 0 = Não(Default): ");
+        string IsWindowsAuthentication = Console.ReadLine();
+        bool windowsAuthentication = (IsWindowsAuthentication == "1");
+
+        if (!windowsAuthentication)
         {
-            break;
+            Console.Write("Usuário: ");
+            userName = Console.ReadLine();
+
+            Console.Write("Senha: ");
+            passWord = Helper.ReadPassword();
+            Console.WriteLine();
         }
-        else if (key.Key == ConsoleKey.Backspace) // Para a tecla Backspace
+
+        SQLServer sqlServer = new SQLServer(serverName, windowsAuthentication, userName, passWord);
+        if (sqlServer.FirstConnection())
         {
-            if (password.Length > 0)
-            {
-                password = password.Substring(0, password.Length - 1); // Remove o último caractere
-                Console.Write("\b \b"); // Apaga o caractere do console
-            }
+            Console.WriteLine("Conexão estabelecida com sucesso!");
+
+            Console.WriteLine("Bancos de dados encontrados:");
+            sqlServer.databaseNames.ForEach(Console.WriteLine);
         }
-        else
-        {
-            password += key.KeyChar; // Adiciona o caractere digitado à senha
-            Console.Write("*"); // Exibe um asterisco para cada caractere digitado
-        }
-    }
-    return password;
+
+        break;
+    default:
+        Console.WriteLine("A opção não foi encontrada");
+        break;
 }
+
+Console.WriteLine("Digite qualquer tecla para sair...");
+Console.ReadKey();
