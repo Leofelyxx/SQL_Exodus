@@ -47,10 +47,20 @@ switch ((Databases)numeroEscolhido)
         SQLServer sqlServer = new SQLServer(serverName, windowsAuthentication, userName, passWord);
         if (sqlServer.FirstConnection())
         {
+            Console.Clear();
             Console.WriteLine("Conexão estabelecida com sucesso!");
 
-            Console.WriteLine("Bancos de dados encontrados:");
             sqlServer.databaseNames.ForEach(Console.WriteLine);
+
+            Console.Write("Deseja fazer um filtro nos bancos? (Caso não queira, digite 0): ");
+            string filter = Console.ReadLine();
+            if (filter != "0")
+            {
+                sqlServer.databaseNames = sqlServer.databaseNames.Where(x => x.StartsWith(filter)).ToList();
+                Console.Clear();
+                Console.WriteLine("Bancos de dados filtrados");
+                sqlServer.databaseNames.ForEach(Console.WriteLine);
+            }
         }
 
         break;
